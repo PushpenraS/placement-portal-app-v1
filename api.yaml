@@ -1,0 +1,852 @@
+openapi: 3.0.3
+info:
+  title: Placement Portal API
+  version: 1.0.0
+  description: API documentation for the Placement Portal App built with Flask, Flask-RESTful, and Flask-Security-Too.
+
+servers:
+  - url: http://127.0.0.1:5250
+    description: Local development server
+
+tags:
+  - name: Auth
+  - name: Registration
+  - name: Admin
+  - name: Employer
+  - name: Candidate
+
+components:
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authentication-Token
+      description: Auth token returned by `/api/login`.
+
+  schemas:
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+
+    EmailAvailabilityRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: student@example.com
+
+    EmailAvailabilityResponse:
+      type: object
+      properties:
+        available:
+          type: boolean
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        auth_token:
+          type: string
+        user:
+          type: object
+          properties:
+            email:
+              type: string
+            role:
+              type: string
+              enum: [admin, employer, candidate]
+
+    RegisterCandidateRequest:
+      type: object
+      required: [email, password, full_name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        full_name:
+          type: string
+
+    RegisterEmployerRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+        name:
+          type: string
+
+    AdminEmployerActionRequest:
+      type: object
+      required: [employer_id, action]
+      properties:
+        employer_id:
+          type: integer
+        action:
+          type: string
+          enum: [approve, deactivate, activate]
+
+    AdminCandidateActionRequest:
+      type: object
+      required: [candidate_id, action]
+      properties:
+        candidate_id:
+          type: integer
+        action:
+          type: string
+          enum: [deactivate, activate]
+
+    DriveCompleteRequest:
+      type: object
+      properties:
+        action:
+          type: string
+          enum: [mark_complete]
+          default: mark_complete
+
+    EmployerProfile:
+      type: object
+      properties:
+        employer_id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+        approval_status:
+          type: string
+          enum: [pending, approved]
+        active:
+          type: boolean
+        about:
+          type: string
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+
+    EmployerProfileUpdateRequest:
+      type: object
+      properties:
+        about:
+          type: string
+          nullable: true
+        industry:
+          type: string
+          nullable: true
+        location:
+          type: string
+          nullable: true
+        website:
+          type: string
+          nullable: true
+
+    CandidateProfile:
+      type: object
+      properties:
+        candidate_id:
+          type: integer
+        full_name:
+          type: string
+        email:
+          type: string
+        active:
+          type: boolean
+        qualification:
+          type: string
+          nullable: true
+        skills:
+          type: string
+          nullable: true
+        resume_path:
+          type: string
+          nullable: true
+
+    CandidateProfileUpdateRequest:
+      type: object
+      properties:
+        qualification:
+          type: string
+          nullable: true
+        skills:
+          type: string
+          nullable: true
+        resume_path:
+          type: string
+          nullable: true
+
+    DriveCreateRequest:
+      type: object
+      required:
+        - name
+        - job_title
+        - job_description
+        - location
+        - eligibility_criteria
+        - application_deadline
+        - salary
+      properties:
+        name:
+          type: string
+        job_title:
+          type: string
+        job_description:
+          type: string
+        salary:
+          type: integer
+        location:
+          type: string
+        eligibility_criteria:
+          type: string
+        application_deadline:
+          type: string
+          format: date
+          example: 2026-03-31
+
+    EmployerApplicationUpdateRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [shortlisted, rejected, selected]
+        employer_id:
+          type: integer
+
+    CandidateDriveApplyRequest:
+      type: object
+      properties:
+        candidate_id:
+          type: integer
+
+paths:
+  /api/check-email:
+    post:
+      tags: [Auth]
+      summary: Check whether an email is available
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailAvailabilityRequest'
+      responses:
+        '200':
+          description: Availability check result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailAvailabilityResponse'
+        '400':
+          description: Missing email
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Login user and get auth token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Missing credentials
+        '401':
+          description: Invalid password
+        '403':
+          description: Inactive or revoked user
+        '404':
+          description: User not found
+
+  /api/logout:
+    post:
+      tags: [Auth]
+      summary: Logout current user
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Logout successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /api/register/candidate:
+    post:
+      tags: [Registration]
+      summary: Register a candidate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterCandidateRequest'
+      responses:
+        '201':
+          description: Candidate created
+        '400':
+          description: Validation or creation error
+
+  /api/register/employer:
+    post:
+      tags: [Registration]
+      summary: Register an employer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterEmployerRequest'
+      responses:
+        '201':
+          description: Employer created
+        '400':
+          description: Validation or creation error
+
+  /api/admin/employer:
+    get:
+      tags: [Admin]
+      summary: List approved employers
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Employer list
+    patch:
+      tags: [Admin]
+      summary: Approve, activate, or deactivate an employer
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminEmployerActionRequest'
+      responses:
+        '200':
+          description: Employer updated
+        '400':
+          description: Invalid input or invalid state
+        '404':
+          description: Employer not found
+
+  /api/admin/employer/{approval_status}:
+    get:
+      tags: [Admin]
+      summary: List employers by approval status
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: approval_status
+          required: true
+          schema:
+            type: string
+            enum: [pending, approved]
+      responses:
+        '200':
+          description: Employer list
+        '400':
+          description: Invalid status
+
+  /api/admin/candidate:
+    get:
+      tags: [Admin]
+      summary: List candidates
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Candidate list
+    patch:
+      tags: [Admin]
+      summary: Activate or deactivate a candidate
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminCandidateActionRequest'
+      responses:
+        '200':
+          description: Candidate updated
+        '400':
+          description: Invalid input
+        '404':
+          description: Candidate not found
+
+  /api/admin/drive:
+    get:
+      tags: [Admin]
+      summary: List ongoing placement drives
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Drive list
+
+  /api/admin/drive/{drive_id}:
+    get:
+      tags: [Admin]
+      summary: Get full drive details
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Drive details
+        '404':
+          description: Drive not found
+    patch:
+      tags: [Admin]
+      summary: Mark an ongoing drive as complete
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveCompleteRequest'
+      responses:
+        '200':
+          description: Drive closed
+        '400':
+          description: Invalid action or drive not ongoing
+        '404':
+          description: Drive not found
+
+  /api/admin/candidate/application:
+    get:
+      tags: [Admin]
+      summary: List applications for admin
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Application list
+
+  /api/admin/candidate/application/{application_id}:
+    get:
+      tags: [Admin]
+      summary: Get one application for admin review
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: application_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application details
+        '404':
+          description: Application not found
+
+  /api/employer/profile:
+    get:
+      tags: [Employer]
+      summary: Get current employer profile
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Employer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmployerProfile'
+        '403':
+          description: Forbidden
+        '404':
+          description: Employer not found
+    put:
+      tags: [Employer]
+      summary: Update current employer profile
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployerProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated
+        '400':
+          description: Invalid payload
+        '403':
+          description: Forbidden
+        '404':
+          description: Employer not found
+
+  /api/employer/drive:
+    get:
+      tags: [Employer]
+      summary: List current employer drives
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [ongoing, closed]
+      responses:
+        '200':
+          description: Drive list
+        '400':
+          description: Invalid status filter
+        '403':
+          description: Forbidden
+    post:
+      tags: [Employer]
+      summary: Create a placement drive
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DriveCreateRequest'
+      responses:
+        '201':
+          description: Drive created
+        '400':
+          description: Validation error
+        '403':
+          description: Forbidden
+        '404':
+          description: Employer not found or inactive
+
+  /api/employer/drive/item/{drive_id}:
+    get:
+      tags: [Employer]
+      summary: Get one employer drive
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Drive details
+        '403':
+          description: Forbidden
+        '404':
+          description: Drive not found
+    patch:
+      tags: [Employer]
+      summary: Mark one employer drive as complete
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Drive marked complete
+        '400':
+          description: Drive not ongoing
+        '403':
+          description: Forbidden
+        '404':
+          description: Drive not found
+
+  /api/employer/drive/{drive_id}/application:
+    get:
+      tags: [Employer]
+      summary: List applications for a drive
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [active, applied, shortlisted, selected, rejected, cancelled]
+      responses:
+        '200':
+          description: Applications for drive
+        '400':
+          description: Invalid status filter
+        '403':
+          description: Forbidden
+        '404':
+          description: Drive not found
+
+  /api/employer/application/{application_id}:
+    get:
+      tags: [Employer]
+      summary: Get one candidate application for employer review
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: application_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Application details
+        '403':
+          description: Forbidden
+        '404':
+          description: Application not found
+    patch:
+      tags: [Employer]
+      summary: Update application status
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: application_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmployerApplicationUpdateRequest'
+      responses:
+        '200':
+          description: Application updated
+        '400':
+          description: Invalid status or invalid transition
+        '403':
+          description: Forbidden
+        '404':
+          description: Application not found
+
+  /api/candidate/profile:
+    get:
+      tags: [Candidate]
+      summary: Get current candidate profile
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Candidate profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CandidateProfile'
+        '403':
+          description: Forbidden
+        '404':
+          description: Candidate not found
+    put:
+      tags: [Candidate]
+      summary: Update current candidate profile
+      security:
+        - tokenAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated
+        '400':
+          description: Invalid payload
+        '403':
+          description: Forbidden
+        '404':
+          description: Candidate not found
+
+  /api/candidate/employer:
+    get:
+      tags: [Candidate]
+      summary: List approved employers visible to candidate
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Employer list
+
+  /api/candidate/employer/{employer_id}:
+    get:
+      tags: [Candidate]
+      summary: Get employer details and its ongoing drives
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: employer_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Employer details
+        '404':
+          description: Employer not found
+
+  /api/candidate/drive/{drive_id}:
+    get:
+      tags: [Candidate]
+      summary: Get placement drive details
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Drive details
+        '404':
+          description: Drive not found
+
+  /api/candidate/drive/{drive_id}/apply:
+    post:
+      tags: [Candidate]
+      summary: Apply to a placement drive
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateDriveApplyRequest'
+      responses:
+        '201':
+          description: Application created
+        '400':
+          description: Invalid request or drive not applicable
+        '403':
+          description: Forbidden or candidate inactive
+        '404':
+          description: Candidate or drive not found
+        '409':
+          description: Already applied
+
+  /api/candidate/drive/application/check/{drive_id}:
+    get:
+      tags: [Candidate]
+      summary: Check whether current candidate already applied to a drive
+      security:
+        - tokenAuth: []
+      parameters:
+        - in: path
+          name: drive_id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Existence flag returned
+        '400':
+          description: Candidate or drive missing
+        '403':
+          description: Forbidden
+
+  /api/candidate/application:
+    get:
+      tags: [Candidate]
+      summary: List candidate applications
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Applied drives list
+        '403':
+          description: Forbidden
+        '404':
+          description: Candidate not found
+
+  /api/candidate/history:
+    get:
+      tags: [Candidate]
+      summary: Get candidate application history
+      security:
+        - tokenAuth: []
+      responses:
+        '200':
+          description: Candidate history
+        '403':
+          description: Forbidden
+        '404':
+          description: Candidate not found

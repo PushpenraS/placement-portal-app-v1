@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Drive Details{% endblock %}
+{% block page_title %}Drive Details{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Review the drive and employer context before taking action.</p>
+{% endblock %}
+{% block content %}
+{% if drive %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <h2 class="h5 mb-3">Drive</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Drive Name</dt>
+                <dd class="col-sm-8">{{ drive.name }}</dd>
+                <dt class="col-sm-4">Job Title</dt>
+                <dd class="col-sm-8">{{ drive.job_title }}</dd>
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8 text-capitalize">{{ drive_status.get(drive.status, "unknown") }}</dd>
+                <dt class="col-sm-4">Salary</dt>
+                <dd class="col-sm-8">{{ drive.salary }}</dd>
+                <dt class="col-sm-4">Location</dt>
+                <dd class="col-sm-8">{{ drive.location }}</dd>
+                <dt class="col-sm-4">Application Deadline</dt>
+                <dd class="col-sm-8">{{ date_only(drive.application_deadline) }}</dd>
+                <dt class="col-sm-4">Eligibility Criteria</dt>
+                <dd class="col-sm-8">{{ drive.eligibility_criteria }}</dd>
+                <dt class="col-sm-4">Job Description</dt>
+                <dd class="col-sm-8">{{ drive.job_description }}</dd>
+            </dl>
+
+            <hr class="my-4">
+
+            <h2 class="h5 mb-3">Employer</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Name</dt>
+                <dd class="col-sm-8">{{ drive.employer.name if drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">Industry</dt>
+                <dd class="col-sm-8">{{ drive.employer.industry if drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">Location</dt>
+                <dd class="col-sm-8">{{ drive.employer.location if drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">Website</dt>
+                <dd class="col-sm-8">{{ drive.employer.website if drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">Approval Status</dt>
+                <dd class="col-sm-8 text-capitalize">{{ drive.employer.approval_status if drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">About</dt>
+                <dd class="col-sm-8">{{ drive.employer.about if drive.employer else "-" }}</dd>
+            </dl>
+
+            <div class="mt-4 d-flex gap-2">
+                <a class="btn btn-outline-secondary" href="{{ url_for('admin_bp.dashboard') }}">Back to Dashboard</a>
+                {% if drive.status == 3 %}
+                <form method="POST" action="{{ url_for('admin_bp.drive_action', drive_id=drive.id) }}">
+                    <input type="hidden" name="action" value="approve">
+                    <button class="btn btn-outline-success" type="submit">Approve</button>
+                </form>
+                <form method="POST" action="{{ url_for('admin_bp.drive_action', drive_id=drive.id) }}">
+                    <input type="hidden" name="action" value="reject">
+                    <button class="btn btn-outline-danger" type="submit">Reject</button>
+                </form>
+                {% elif drive.status == 1 %}
+                <form method="POST" action="{{ url_for('admin_bp.close_drive', drive_id=drive.id) }}">
+                    <button class="btn btn-dark" type="submit">Mark Complete</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">Drive not found.</div>
+{% endif %}
+{% endblock %}

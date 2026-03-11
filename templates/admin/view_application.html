@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Application Details{% endblock %}
+{% block page_title %}Application Details{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Review the candidate profile and the drive context together.</p>
+{% endblock %}
+
+{% block content %}
+{% if application %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <h2 class="h5 mb-3">Candidate</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Name</dt>
+                <dd class="col-sm-8">{{ application.candidate.full_name if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Qualification</dt>
+                <dd class="col-sm-8">{{ application.candidate.qualification if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Skills</dt>
+                <dd class="col-sm-8">{{ application.candidate.skills if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Resume</dt>
+                <dd class="col-sm-8">
+                    {% if application.candidate and application.candidate.resume_path %}
+                    <a href="{{ application.candidate.resume_path }}" target="_blank" rel="noopener noreferrer">View Resume</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </dd>
+            </dl>
+
+            <hr class="my-4">
+
+            <h2 class="h5 mb-3">Application</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Status</dt>
+                <dd class="col-sm-8 text-capitalize">{{ app_status.get(application.status, "unknown") }}</dd>
+                <dt class="col-sm-4">Applied At</dt>
+                <dd class="col-sm-8">{{ date_only(application.applied_at) }}</dd>
+                <dt class="col-sm-4">Drive</dt>
+                <dd class="col-sm-8">{{ application.placement_drive.name if application.placement_drive else "-" }}</dd>
+                <dt class="col-sm-4">Job Title</dt>
+                <dd class="col-sm-8">{{ application.placement_drive.job_title if application.placement_drive else "-" }}</dd>
+                <dt class="col-sm-4">Employer</dt>
+                <dd class="col-sm-8">{{ application.placement_drive.employer.name if application.placement_drive and application.placement_drive.employer else "-" }}</dd>
+                <dt class="col-sm-4">Salary</dt>
+                <dd class="col-sm-8">{{ application.placement_drive.salary if application.placement_drive else "-" }}</dd>
+                <dt class="col-sm-4">Location</dt>
+                <dd class="col-sm-8">{{ application.placement_drive.location if application.placement_drive else "-" }}</dd>
+            </dl>
+
+            <div class="mt-4">
+                <a class="btn btn-outline-secondary" href="{{ url_for('admin_bp.dashboard') }}">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning">Application not found.</div>
+{% endif %}
+{% endblock %}

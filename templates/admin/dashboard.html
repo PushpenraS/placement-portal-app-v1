@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block nav_start %}
+<div class="d-flex align-items-center ms-lg-3">
+    <form class="d-flex" method="GET" action="{{ url_for('admin_bp.dashboard') }}">
+        <select class="form-select form-select-sm me-2" name="scope">
+            <option value="all" {% if search_scope == 'all' %}selected{% endif %}>All</option>
+            <option value="candidate" {% if search_scope == 'candidate' %}selected{% endif %}>Candidate</option>
+            <option value="employer" {% if search_scope == 'employer' %}selected{% endif %}>Employer</option>
+        </select>
+        <input class="form-control form-control-sm me-2" type="search" name="q" value="{{ search_query or '' }}" placeholder="Search dashboard">
+        <button class="btn btn-sm btn-outline-light text-nowrap" type="submit">Search</button>
+    </form>
+</div>
+{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Manage employers, candidates, drives, and candidate applications from one place.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-6 col-xl-3">
+        <div class="card text-bg-dark h-100">
+            <div class="card-body">
+                <h2 class="h6 card-title">Approved Employers</h2>
+                <p class="display-6 mb-0">{{ approved_employers|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card text-bg-secondary h-100">
+            <div class="card-body">
+                <h2 class="h6 card-title">Pending Approvals</h2>
+                <p class="display-6 mb-0">{{ pending_employers|length + pending_drives|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card text-bg-light h-100">
+            <div class="card-body">
+                <h2 class="h6 card-title">Candidates</h2>
+                <p class="display-6 mb-0">{{ candidates|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 col-xl-3">
+        <div class="card border-dark h-100">
+            <div class="card-body">
+                <h2 class="h6 card-title">Ongoing Drives</h2>
+                <p class="display-6 mb-0">{{ ongoing_drives|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Approved Employers</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="w-25">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employer in approved_employers %}
+                        {% set is_active = employer.user and employer.user.active %}
+                        <tr>
+                            <td>{{ employer.name }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin_bp.employer_action', employer_id=employer.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="deactivate">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" {% if not is_active %}disabled{% endif %}>Deactivate</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_bp.employer_action', employer_id=employer.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="activate">
+                                    <button class="btn btn-sm btn-outline-success" type="submit" {% if is_active %}disabled{% endif %}>Activate</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-secondary">No approved employers.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Candidates</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="w-25">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidate in candidates %}
+                        {% set is_active = candidate.user and candidate.user.active %}
+                        <tr>
+                            <td>{{ candidate.full_name }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin_bp.candidate_action', candidate_id=candidate.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="deactivate">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" {% if not is_active %}disabled{% endif %}>Deactivate</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_bp.candidate_action', candidate_id=candidate.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="activate">
+                                    <button class="btn btn-sm btn-outline-success" type="submit" {% if is_active %}disabled{% endif %}>Activate</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-secondary">No candidates found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Pending Employer Approvals</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="w-25">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employer in pending_employers %}
+                        <tr>
+                            <td>{{ employer.name }}</td>
+                            <td>
+                                <form method="POST" action="{{ url_for('admin_bp.employer_action', employer_id=employer.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button class="btn btn-sm btn-outline-success" type="submit">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_bp.employer_action', employer_id=employer.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="2" class="text-secondary">No pending approvals.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Pending Drive Approvals</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Drive</th>
+                            <th>Employer</th>
+                            <th>Deadline</th>
+                            <th class="w-25">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for drive in pending_drives %}
+                        <tr>
+                            <td>{{ drive.name }}</td>
+                            <td>{{ drive.employer.name if drive.employer else "-" }}</td>
+                            <td>{{ date_only(drive.application_deadline) }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_bp.view_drive', drive_id=drive.id) }}">View Details</a>
+                                <form method="POST" action="{{ url_for('admin_bp.drive_action', drive_id=drive.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="approve">
+                                    <button class="btn btn-sm btn-outline-success" type="submit">Approve</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('admin_bp.drive_action', drive_id=drive.id) }}" class="d-inline">
+                                    <input type="hidden" name="action" value="reject">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-secondary">No pending drives.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Ongoing Drives</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Drive</th>
+                            <th>Employer</th>
+                            <th>Deadline</th>
+                            <th class="w-25">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for drive in ongoing_drives %}
+                        <tr>
+                            <td>{{ drive.name }}</td>
+                            <td>{{ drive.employer.name if drive.employer else "-" }}</td>
+                            <td>{{ date_only(drive.application_deadline) }}</td>
+                            <td>
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_bp.view_drive', drive_id=drive.id) }}">View Details</a>
+                                <form method="POST" action="{{ url_for('admin_bp.close_drive', drive_id=drive.id) }}" class="d-inline">
+                                    <button class="btn btn-sm btn-outline-dark" type="submit">Mark Complete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-secondary">No ongoing drives.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">Applications</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Drive</th>
+                            <th>Employer</th>
+                            <th>Applied At</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr>
+                            <td>{{ application.candidate.full_name if application.candidate else "-" }}</td>
+                            <td>{{ application.placement_drive.name if application.placement_drive else "-" }}</td>
+                            <td>{{ application.placement_drive.employer.name if application.placement_drive and application.placement_drive.employer else "-" }}</td>
+                            <td>{{ date_only(application.applied_at) }}</td>
+                            <td class="text-capitalize">{{ app_status.get(application.status, "unknown") }}</td>
+                            <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin_bp.view_application', application_id=application.id) }}">View</a></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="6" class="text-secondary">No applications found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

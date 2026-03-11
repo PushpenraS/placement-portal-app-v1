@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Review Application{% endblock %}
+{% block page_title %}Review Application{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Update application status using a server-rendered employer review flow.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <h2 class="h5 mb-3">Candidate Profile</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Name</dt>
+                <dd class="col-sm-8">{{ application.candidate.full_name if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Qualification</dt>
+                <dd class="col-sm-8">{{ application.candidate.qualification if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Skills</dt>
+                <dd class="col-sm-8">{{ application.candidate.skills if application.candidate else "-" }}</dd>
+                <dt class="col-sm-4">Resume</dt>
+                <dd class="col-sm-8">
+                    {% if application.candidate and application.candidate.resume_path %}
+                    <a href="{{ application.candidate.resume_path }}" target="_blank" rel="noopener noreferrer">View Resume</a>
+                    {% else %}
+                    -
+                    {% endif %}
+                </dd>
+            </dl>
+        </div>
+    </div>
+    <div class="col-12 col-lg-6">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <h2 class="h5 mb-3">Update Status</h2>
+            <p><strong>Drive:</strong> {{ application.placement_drive.name if application.placement_drive else "-" }}</p>
+            <p><strong>Current Status:</strong> <span class="text-capitalize">{{ app_status.get(application.status, "unknown") }}</span></p>
+            <form method="POST" action="{{ url_for('employer_bp.review_application', application_id=application.id) }}">
+                <div class="mb-3">
+                    <label for="app_status" class="form-label">New Status</label>
+                    <select class="form-select" id="app_status" name="app_status">
+                        <option value="1" {% if application.status == 1 %}selected{% endif %}>Applied</option>
+                        <option value="2" {% if application.status == 2 %}selected{% endif %}>Shortlisted</option>
+                        <option value="3" {% if application.status == 3 %}selected{% endif %}>Selected</option>
+                        <option value="4" {% if application.status == 4 %}selected{% endif %}>Rejected</option>
+                        <option value="0" {% if application.status == 0 %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-dark" type="submit">Save</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('employer_bp.get_applicants', drive_id=application.placement_drive_id) }}">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

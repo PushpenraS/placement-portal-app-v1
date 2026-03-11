@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Create Drive{% endblock %}
+{% block page_title %}Create Drive{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Create a placement drive with the same information surfaced in MAD-2.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="bg-white border rounded shadow-sm p-4">
+            {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('employer_bp.create_drive') }}">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="name" class="form-label">Drive Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="job_title" class="form-label">Job Title</label>
+                        <input type="text" class="form-control" id="job_title" name="job_title" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="salary" class="form-label">Salary</label>
+                        <input type="number" class="form-control" id="salary" name="salary" min="0" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="application_deadline" class="form-label">Application Deadline</label>
+                        <input type="date" class="form-control" id="application_deadline" name="application_deadline" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="job_description" class="form-label">Job Description</label>
+                        <textarea class="form-control" id="job_description" name="job_description" rows="4" required></textarea>
+                    </div>
+                    <div class="col-12">
+                        <label for="eligibility_criteria" class="form-label">Eligibility Criteria</label>
+                        <textarea class="form-control" id="eligibility_criteria" name="eligibility_criteria" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-dark" type="submit">Create Drive</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('employer_bp.dashboard') }}">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Employer Profile{% endblock %}
+{% block page_title %}Edit Employer Profile{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Maintain the profile information candidates see while exploring organizations.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <form method="POST" action="{{ url_for('employer_bp.profile') }}">
+                <div class="mb-3">
+                    <label class="form-label">Organization Name</label>
+                    <input type="text" class="form-control" value="{{ employer.name }}" readonly>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="industry" class="form-label">Industry</label>
+                        <input type="text" class="form-control" id="industry" name="industry" value="{{ employer.industry or '' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="location" class="form-label">Location</label>
+                        <input type="text" class="form-control" id="location" name="location" value="{{ employer.location or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label for="website" class="form-label">Website</label>
+                        <input type="text" class="form-control" id="website" name="website" value="{{ employer.website or '' }}">
+                    </div>
+                    <div class="col-12">
+                        <label for="about" class="form-label">About</label>
+                        <textarea class="form-control" id="about" name="about" rows="4">{{ employer.about or '' }}</textarea>
+                    </div>
+                </div>
+                <div class="mt-4 d-flex gap-2">
+                    <button class="btn btn-dark" type="submit">Save</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('employer_bp.dashboard') }}">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

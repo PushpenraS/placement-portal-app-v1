@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Candidate Profile{% endblock %}
+{% block page_title %}Edit Candidate Profile{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Maintain the profile information employers see while reviewing applications.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <form method="POST" action="{{ url_for('candidate_bp.profile') }}">
+                <div class="mb-3">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-control" value="{{ candidate.full_name }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="qualification" class="form-label">Qualification</label>
+                    <input type="text" class="form-control" id="qualification" name="qualification" value="{{ candidate.qualification or '' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="skills" class="form-label">Skills</label>
+                    <textarea class="form-control" id="skills" name="skills" rows="3">{{ candidate.skills or '' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="resume_path" class="form-label">Resume Link</label>
+                    <input type="url" class="form-control" id="resume_path" name="resume_path" value="{{ candidate.resume_path or '' }}" placeholder="https://example.com/resume">
+                </div>
+                {% if candidate.resume_path %}
+                <div class="mb-3">
+                    <a href="{{ candidate.resume_path }}" target="_blank" rel="noopener noreferrer">View Resume</a>
+                </div>
+                {% endif %}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-dark" type="submit">Save</button>
+                    <a class="btn btn-outline-secondary" href="{{ url_for('candidate_bp.dashboard') }}">Back</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

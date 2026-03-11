@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Application History{% endblock %}
+{% block page_title %}Application History{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">{{ candidate.full_name }} | {{ candidate.qualification or "-" }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="bg-white border rounded shadow-sm">
+    <div class="table-responsive">
+        <table class="table mb-0 align-middle">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Drive</th>
+                    <th>Job Title</th>
+                    <th>Applied At</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ application.placement_drive.name if application.placement_drive else "-" }}</td>
+                    <td>{{ application.placement_drive.job_title if application.placement_drive else "-" }}</td>
+                    <td>{{ date_only(application.applied_at) }}</td>
+                    <td class="text-capitalize">{{ app_status.get(application.status, "unknown") }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-secondary">No history available.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="mt-3">
+    <a class="btn btn-outline-secondary" href="{{ url_for('candidate_bp.dashboard') }}">Back</a>
+</div>
+{% endblock %}

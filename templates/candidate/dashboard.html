@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Candidate Dashboard{% endblock %}
+{% block page_title %}Candidate Dashboard{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">Explore organizations, track applications, and maintain your candidate profile.</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <h2 class="h5 mb-3">{{ candidate.full_name }}</h2>
+            <div class="row">
+                <div class="col-md-4"><strong>Qualification:</strong> {{ candidate.qualification or "-" }}</div>
+                <div class="col-md-4"><strong>Skills:</strong> {{ candidate.skills or "-" }}</div>
+                <div class="col-md-4"><strong>Resume:</strong> {{ candidate.resume_path or "-" }}</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="bg-white border rounded shadow-sm">
+            <div class="border-bottom px-3 py-2 fw-semibold">Organizations</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Industry</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for employer in employers %}
+                        <tr>
+                            <td>{{ employer.name }}</td>
+                            <td>{{ employer.industry or "-" }}</td>
+                            <td><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('candidate_bp.employer_profile', employer_id=employer.id) }}">View</a></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-secondary">No organizations available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-xl-6">
+        <div class="bg-white border rounded shadow-sm">
+            <div class="border-bottom px-3 py-2 fw-semibold">Applied Drives</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Drive</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for application in applications %}
+                        <tr>
+                            <td>{{ application.placement_drive.name if application.placement_drive else "-" }}</td>
+                            <td class="text-capitalize">{{ app_status.get(application.status, "unknown") }}</td>
+                            <td>
+                                {% if application.placement_drive %}
+                                <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('candidate_bp.placement_drive', drive_id=application.placement_drive.id, source='dashboard') }}">View</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="3" class="text-secondary">No applications submitted yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

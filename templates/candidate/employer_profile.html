@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Employer Overview{% endblock %}
+{% block page_title %}{{ employer.name }}{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">{{ employer.industry or "-" }} | {{ employer.location or "-" }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <div class="mb-2"><strong>About:</strong></div>
+            <p class="mb-0">{{ employer.about or "-" }}</p>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="bg-white border rounded shadow-sm">
+            <div class="border-bottom px-3 py-2 fw-semibold">Current Drives</div>
+            <div class="table-responsive">
+                <table class="table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>Drive</th>
+                            <th>Job Title</th>
+                            <th>Deadline</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for drive in drives %}
+                        <tr>
+                            <td>{{ drive.name }}</td>
+                            <td>{{ drive.job_title }}</td>
+                            <td>{{ date_only(drive.application_deadline) }}</td>
+                            <td>
+                                <a class="btn btn-sm {% if drive.id in existing_applications %}btn-outline-success{% else %}btn-outline-secondary{% endif %}" href="{{ url_for('candidate_bp.placement_drive', drive_id=drive.id, source='employer') }}">
+                                    {% if drive.id in existing_applications %}Applied{% else %}View{% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-secondary">No active drives.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <a class="btn btn-outline-secondary" href="{{ url_for('candidate_bp.dashboard') }}">Back</a>
+    </div>
+</div>
+{% endblock %}

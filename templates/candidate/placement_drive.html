@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Drive Details{% endblock %}
+{% block page_title %}{{ drive.name }}{% endblock %}
+{% block page_subtitle %}
+<p class="text-secondary mb-0">{{ drive.job_title }} | {{ drive.employer.name if drive.employer else "-" }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="bg-white border rounded shadow-sm p-4">
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Salary</dt>
+                <dd class="col-sm-8">{{ drive.salary }}</dd>
+                <dt class="col-sm-4">Location</dt>
+                <dd class="col-sm-8">{{ drive.location }}</dd>
+                <dt class="col-sm-4">Deadline</dt>
+                <dd class="col-sm-8">{{ date_only(drive.application_deadline) }}</dd>
+                <dt class="col-sm-4">Eligibility</dt>
+                <dd class="col-sm-8">{{ drive.eligibility_criteria }}</dd>
+            </dl>
+            <hr>
+            <h2 class="h5">Job Description</h2>
+            <p class="mb-0">{{ drive.job_description }}</p>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="bg-white border rounded shadow-sm p-4">
+            {% if existing_application %}
+            <p class="mb-3">You have already applied to this drive.</p>
+            <p class="mb-3"><strong>Status:</strong> <span class="text-capitalize">{{ app_status.get(existing_application.status, "unknown") }}</span></p>
+            {% elif drive.status != 1 %}
+            <p class="mb-0">This drive is not open for applications.</p>
+            {% elif not candidate.resume_path %}
+            <p class="mb-3 text-danger">*Add resume to apply</p>
+            <a class="btn btn-dark w-100 mb-2" href="{{ url_for('candidate_bp.profile') }}">Edit Profile</a>
+            {% else %}
+            <form method="POST" action="{{ url_for('candidate_bp.placement_drive', drive_id=drive.id) }}">
+                <input type="hidden" name="source" value="{{ source }}">
+                <button class="btn btn-dark w-100 mb-2" type="submit">Apply</button>
+            </form>
+            {% endif %}
+            <a class="btn btn-outline-secondary w-100" href="{{ back_target }}">Back</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,10 +1,8 @@
 from flask import (
     Blueprint,
     current_app as app,
-    redirect,
     render_template,
     request,
-    url_for,
 )
 from sqlalchemy import exc
 

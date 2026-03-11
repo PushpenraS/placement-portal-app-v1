@@ -1,0 +1,1 @@
+from .localdevelopment import LocalDevelopmentConfig

@@ -4,3 +4,4 @@ from .Employer import Employer
 from .Candidate import Candidate
 from .PlacementDrive import PlacementDrive
 from .Application import Application
+from .RolesUsers import RolesUsers

@@ -15,4 +15,4 @@ class Candidate(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
 
     user = db.relationship("User", back_populates="candidate_profile")
-    applications = db.relationship("Application", back_populates="candidate", cascade="all, delete-orphan")
+    applications = db.relationship("Application", cascade="all, delete-orphan")

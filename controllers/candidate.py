@@ -2,19 +2,12 @@ from flask import Blueprint, redirect, render_template, request, url_for
 from flask_security import current_user, roles_required
 from sqlalchemy import exc
 
-from extensions import db
+from extensions import db, to_date_only
 from models import Application, Employer, PlacementDrive
 
 candidate_bp = Blueprint("candidate_bp", __name__, url_prefix="/candidate")
 
 APP_STATUS = {0: "cancelled", 1: "applied", 2: "shortlisted", 3: "selected", 4: "rejected"}
-
-
-def _date_only(value):
-    if not value:
-        return "-"
-    return value.date()
-
 
 @candidate_bp.route("/dashboard")
 @roles_required("candidate")
@@ -29,7 +22,7 @@ def dashboard():
         employers=employers,
         applications=candidate.applications if candidate else [],
         app_status=APP_STATUS,
-        date_only=_date_only,
+        date_only=to_date_only,
     )
 
 
@@ -61,7 +54,7 @@ def history():
         candidate=candidate,
         applications=candidate.applications if candidate else [],
         app_status=APP_STATUS,
-        date_only=_date_only,
+        date_only=to_date_only,
     )
 
 
@@ -87,7 +80,7 @@ def employer_profile(employer_id):
         employer=employer,
         drives=drives,
         existing_applications=existing_applications,
-        date_only=_date_only,
+        date_only=to_date_only,
     )
 
 
@@ -135,5 +128,5 @@ def placement_drive(drive_id):
         app_status=APP_STATUS,
         back_target=back_target,
         source=source,
-        date_only=_date_only,
+        date_only=to_date_only,
     )
